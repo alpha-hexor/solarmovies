@@ -1,0 +1,5 @@
+{
+    "istermux" : "False",
+    "video_player" : "mpv",
+    "quality" : "low"
+}
