@@ -8,7 +8,7 @@ import json
 import platform
 
 #load the settings
-f=open(os.getcwd()+"\\settings.json")
+f=open(os.getcwd()+"/settings.json")
 data = json.load(f)
 istermux = data['istermux']
 player = data['video_player']
@@ -16,7 +16,7 @@ quality = data["quality"]
 
 #fzf executable
 if platform.system() == "Windows":
-    process.EXECUTABLE = os.getcwd()+"\\fzf.exe"
+    process.EXECUTABLE = os.getcwd()+"/fzf.exe"
 
 streaming_data={}
 streaming_data["player"] = player

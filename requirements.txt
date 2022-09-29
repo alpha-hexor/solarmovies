@@ -1,0 +1,4 @@
+httpx
+yarl
+pycryptodomex
+git+https://www.github.com/justfoolingaround/fzf.py
