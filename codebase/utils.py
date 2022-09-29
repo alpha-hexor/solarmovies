@@ -2,11 +2,16 @@ from .httpclient import HttpClient
 import base64
 import re
 import json
+import hashlib
+from Cryptodome.Cipher import AES
 
 #global shit
 req = HttpClient()
 raw_domain = "https://rabbitstream.net:443"
 domain = base64.b64encode(raw_domain.encode()).decode().replace("\n", "").replace("=", ".")
+
+#decryption phrase
+pass_phrase = bytes(req.get("https://raw.githubusercontent.com/BlipBlob/blabflow/main/keys.json").json()["key"],"utf-8")
 
 #regex
 VTOKEN = r"po.src='https://www.gstatic.com/recaptcha/releases/(.*?)/recaptcha__en.js"
@@ -46,6 +51,45 @@ def gettoken(key):
     
     return j[1]
 
+def md5(data):
+    return hashlib.md5(data).digest()
+
+
+def get_key(salt):
+    '''
+    function to generate key for decryption
+    '''
+    x = md5(pass_phrase+salt)
+    current_key = x
+    
+    while(len(current_key) < 48):
+        x = md5(x+pass_phrase+salt)
+        current_key += x
+
+    return current_key    
+
+def decrypt(data):
+    '''
+    new function to decrypt data
+    
+    '''
+    k = get_key(
+        base64.b64decode(data)[8:16]
+    )
+    
+    dec_key = k[:32]
+    iv = k[32:]
+    
+    try:
+            
+        p = AES.new(dec_key,AES.MODE_CBC,iv=iv).decrypt(
+            base64.b64decode(data)[16:]
+        ).decode()
+        
+        return p
+    except:
+        print("[*]Decryption failed")
+        exit()
 
 def quality_parse(link):
     """

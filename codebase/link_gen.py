@@ -1,6 +1,7 @@
 from .httpclient import HttpClient
 import re
 from .utils import *
+import yarl
 
 #global shit
 req = HttpClient()
@@ -32,23 +33,21 @@ def get_final_link(ismovie,id):
     
     #generate rabbit stream link
     
-    r=req.get(f"{ajax_url}get_link/{sid}")
-    rabbit_link = r.json()["link"]
+    iframe_link =req.get(f"{ajax_url}sources/{sid}").json()["link"]
+    #print(iframe_link)
     
     #get final stuff
-    rabbit_id = rabbit_link.split("/")[-1].split("?")[0]
-    
-    r =req.get(
-        rabbit_link,
-        headers={'referer':'https://solarmovie.pe/'}
-    ).text
-
-    site_key = re.findall(r"recaptchaSiteKey = '(.*?)'",r)[0]
-    times = re.findall(r"recaptchaNumber = '(.*?)'",r)[0]
-    token = gettoken(site_key)
+    iframe_id = re.findall(r'embed-\d.*\/(.*)\?',iframe_link)[0]
+    #final_link = re.findall(r'(https:\/\/.*\/embed-4)',iframe_link)[0].replace("embed-4","ajax/embed-4/")
+    final_link = f"https://{yarl.URL(iframe_link).host}/ajax/embed-4/"
     
     #final req
-    x = req.get(f"https://rabbitstream.net/ajax/embed-4/getSources?id={rabbit_id}&_token={token}&_number={times}",headers={'X-Requested-With': 'XMLHttpRequest'}).json()
+    x = req.get(
+        f"{final_link}getSources?id={iframe_id}",
+        headers={
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    ).json()
     
     """
     subtitles
@@ -58,7 +57,7 @@ def get_final_link(ismovie,id):
     '''
     final link part
     '''
-    final_link = x["sources"][0]["file"]
+    final_link = decrypt(x["sources"]) if x['encrypted']  else x["sources"][0]["file"]
     
     qualities,links = quality_parse(final_link)
     
