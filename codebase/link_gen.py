@@ -1,7 +1,7 @@
 from .httpclient import HttpClient
 import re
 from .utils import *
-import yarl
+
 
 #global shit
 req = HttpClient()
@@ -39,16 +39,19 @@ def get_final_link(ismovie,id):
     #get final stuff
     iframe_id = re.findall(r'embed-\d.*\/(.*)\?',iframe_link)[0]
     #final_link = re.findall(r'(https:\/\/.*\/embed-4)',iframe_link)[0].replace("embed-4","ajax/embed-4/")
-    final_link = f"https://{yarl.URL(iframe_link).host}/ajax/embed-4/"
+    # final_link = f"https://{yarl.URL(iframe_link).host}/ajax/embed-4/"
     
-    #final req
-    x = req.get(
-        f"{final_link}getSources?id={iframe_id}",
-        headers={
-            'X-Requested-With': 'XMLHttpRequest'
-        }
-    ).json()
+    # #final req
+    # x = req.get(
+    #     f"{final_link}getSources?id={iframe_id}",
+    #     headers={
+    #         'X-Requested-With': 'XMLHttpRequest'
+    #     }
+    # ).json()
+    #print(x)
     
+    #ws simulation
+    key , x = websock_simulation(iframe_id)
     """
     subtitles
     """    
@@ -57,7 +60,8 @@ def get_final_link(ismovie,id):
     '''
     final link part
     '''
-    final_link = decrypt(x["sources"]) if x['encrypted']  else x["sources"][0]["file"]
+    final_link = re.findall(r'{"file":"(.*?)"'
+        ,decrypt(x["sources"],bytes(key,"utf-8")))[0]
     
     qualities,links = quality_parse(final_link)
     

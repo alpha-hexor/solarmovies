@@ -1,4 +1,5 @@
 httpx
 yarl
 pycryptodomex
+websocket-client
 git+https://www.github.com/justfoolingaround/fzf.py

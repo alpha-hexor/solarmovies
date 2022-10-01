@@ -4,6 +4,7 @@ import re
 import json
 import hashlib
 from Cryptodome.Cipher import AES
+from websocket import create_connection as ct
 
 #global shit
 req = HttpClient()
@@ -11,11 +12,15 @@ raw_domain = "https://rabbitstream.net:443"
 domain = base64.b64encode(raw_domain.encode()).decode().replace("\n", "").replace("=", ".")
 
 #decryption phrase
-pass_phrase = bytes(req.get("https://raw.githubusercontent.com/BlipBlob/blabflow/main/keys.json").json()["key"],"utf-8")
+#pass_phrase = bytes(req.get("https://raw.githubusercontent.com/BlipBlob/blabflow/main/keys.json").json()["key"],"utf-8")
 
 #regex
 VTOKEN = r"po.src='https://www.gstatic.com/recaptcha/releases/(.*?)/recaptcha__en.js"
 RECAPTOKEN = r'id="recaptcha-token" value="(.*?)"'
+
+CODE_REGEX = r"""^\d*"""
+SID_REGEX = r'{"sid":"(.*?)"'
+SOURCE_REGEX = r"""\{.*\}"""
 
 def gettoken(key):
     """
@@ -55,7 +60,7 @@ def md5(data):
     return hashlib.md5(data).digest()
 
 
-def get_key(salt):
+def get_key(salt,pass_phrase):
     '''
     function to generate key for decryption
     '''
@@ -68,13 +73,13 @@ def get_key(salt):
 
     return current_key    
 
-def decrypt(data):
+def decrypt(data,key):
     '''
     new function to decrypt data
     
     '''
     k = get_key(
-        base64.b64decode(data)[8:16]
+        base64.b64decode(data)[8:16],key
     )
     
     dec_key = k[:32]
@@ -108,4 +113,30 @@ def quality_parse(link):
         links.append(s[i+1]) 
         
     return qualities,links
+
+#websocket simulation
+def websock_simulation(iframe_id):
+    '''
+    will return decryption key, sources and tracks
+    '''
+    ws = ct("wss://wsx.dokicloud.one/socket.io/?EIO=4&transport=websocket")
+    p = ws.recv()
+    code = re.findall(CODE_REGEX,p)[0]
+    
+    #dirty impleamentation
+    if code == "0":
+        ws.send("40")
+        p=ws.recv()
         
+        code = re.findall(CODE_REGEX,p)[0]
+        
+        if code == "40":
+            key =re.findall(SID_REGEX,p)[0]
+            
+            ws.send(
+                '42["getSources",{"id":"'+iframe_id+'"}]'
+            )
+            p =ws.recv()
+            x = json.loads(re.findall(SOURCE_REGEX,p)[0])
+            
+    return key,x
