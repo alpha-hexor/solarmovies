@@ -13,7 +13,7 @@ client = httpx.Client(headers={'user-agent':'UWU'})
 
 ajax_url = "https://solarmovie.pe/ajax/"
 #key = bytes(client.get("https://raw.githubusercontent.com/BlipBlob/blabflow/main/keys.json").json()["key"],"utf-8")
-
+key = bytes(client.get("https://raw.githubusercontent.com/consumet/rapidclown/rabbitstream/key.txt").text,"utf-8")
 #some regex
 CODE_REGEX = r"""^\d*"""
 SID_REGEX = r'{"sid":"(.*?)"'
@@ -108,19 +108,19 @@ iframe_link=client.get(f"{ajax_url}sources/{sid}").json()["link"]
 
 iframe_id = re.findall(r'embed-\d.*\/(.*)\?',iframe_link)[0]
 #print(iframe_id)
-#host = yarl.URL(iframe_link).host
+host = yarl.URL(iframe_link).host
 #print(host)
 #final_link = re.findall(r'(https:\/\/.*\/embed-4-v2)',iframe_link)[0].replace("embed-4-v2","ajax/embed-4-v2/")
 #print(final_link)
 
-# r=client.get(f"https://{host}/ajax/embed-4/getSources?id={iframe_id}",
-#              headers={
-#                  'X-Requested-With': 'XMLHttpRequest'
-#              }).json()
+r=client.get(f"https://{host}/ajax/embed-4/getSources?id={iframe_id}",
+             headers={
+                 'X-Requested-With': 'XMLHttpRequest'
+             }).json()
 
-#print(r)
+print(r)
 
-key,source,track = websock_simulation(iframe_id)
+#key,source,track = websock_simulation(iframe_id)
 
 
 #print(key)
@@ -131,7 +131,6 @@ key,source,track = websock_simulation(iframe_id)
 # else:
 #     print(r['sources'][0]['file'])
     
-print(decrypt(source,bytes(key,"utf-8")))
-
+print(decrypt(r["sources"],key))
 
 

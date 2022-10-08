@@ -12,7 +12,7 @@ raw_domain = "https://rabbitstream.net:443"
 domain = base64.b64encode(raw_domain.encode()).decode().replace("\n", "").replace("=", ".")
 
 #decryption phrase
-#pass_phrase = bytes(req.get("https://raw.githubusercontent.com/BlipBlob/blabflow/main/keys.json").json()["key"],"utf-8")
+pass_phrase = bytes(req.get("https://raw.githubusercontent.com/consumet/rapidclown/rabbitstream/key.txt").text,"utf-8")
 
 #regex
 VTOKEN = r"po.src='https://www.gstatic.com/recaptcha/releases/(.*?)/recaptcha__en.js"
@@ -78,6 +78,8 @@ def decrypt(data,key):
     new function to decrypt data
     
     '''
+    if len(key) == 0:
+        key = pass_phrase
     k = get_key(
         base64.b64decode(data)[8:16],key
     )
